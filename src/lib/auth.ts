@@ -5,7 +5,12 @@ import { db } from "@/db/index";
 import { users, accounts, sessions, verificationTokens } from "@/db/schema";
 
 export const authOptions: NextAuthOptions = {
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   providers: [
     GithubProvider({
       clientId: process.env.AUTH_GITHUB_ID!,
@@ -13,15 +18,36 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
   secret: process.env.AUTH_SECRET,
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
-    session({ session, user }) {
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    session({ session, token }) {
       if (session.user) {
-        session.user.id = user.id;
+        session.user.id = token.id ?? token.sub ?? "";
       }
       return session;
+    },
+    redirect({ url, baseUrl }) {
+      // If the callback is relative, add it to the baseUrl
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      // If the callback is on the same origin, allow it
+      if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      // Default redirect to /app
+      return `${baseUrl}/app`;
     },
   },
 };

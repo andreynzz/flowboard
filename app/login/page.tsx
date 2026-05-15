@@ -1,6 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/app";
+
+  function handleGithubSignIn() {
+    startTransition(() => {
+      void signIn("github", { callbackUrl });
+    });
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 px-6 py-12 dark:bg-zinc-950">
       <main className="mx-auto flex w-full max-w-xl flex-col gap-8 rounded-3xl bg-white p-10 shadow-lg ring-1 ring-black/5 dark:bg-zinc-950 dark:ring-white/10">
@@ -17,12 +33,14 @@ export default function LoginPage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <a
-            href="/api/auth/signin/github"
+          <button
+            type="button"
+            onClick={handleGithubSignIn}
+            disabled={isPending}
             className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
           >
-            Entrar com GitHub
-          </a>
+            {isPending ? "Redirecionando..." : "Entrar com GitHub"}
+          </button>
           <Link
             href="/"
             className="text-sm font-medium text-zinc-600 underline underline-offset-4 dark:text-zinc-300"

@@ -6,6 +6,7 @@ import {
   pgEnum,
   primaryKey,
 } from "drizzle-orm/pg-core";
+import { nanoid } from "nanoid";
 
 export const priorityEnum = pgEnum("priority", [
   "LOW",
@@ -16,7 +17,9 @@ export const priorityEnum = pgEnum("priority", [
 
 // Auth.js tables
 export const users = pgTable("users", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
   name: text("name"),
   email: text("email").unique(),
   emailVerified: timestamp("email_verified", { mode: "date" }),
