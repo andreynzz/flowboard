@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { deleteCard, updateCard } from "@/actions/card.actions";
+import ConfirmSubmitButton from "@/components/ui/ConfirmSubmitButton";
 import type { Card } from "@/types";
 
 const priorityLabel: Record<Card["priority"], string> = {
@@ -140,12 +141,12 @@ export default function KanbanCard({ card }: { card: Card }) {
 
         <form action={deleteCard} className="mt-3">
           <input type="hidden" name="cardId" value={card.id} />
-          <button
-            type="submit"
+          <ConfirmSubmitButton
+            message="Excluir este card?"
             className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-900"
           >
             Excluir
-          </button>
+          </ConfirmSubmitButton>
         </form>
       </details>
     </article>

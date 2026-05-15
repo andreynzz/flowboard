@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { deleteBoard } from "@/actions/board.actions";
+import ConfirmSubmitButton from "@/components/ui/ConfirmSubmitButton";
 import type { Board } from "@/types";
 import EditBoardForm from "./EditBoardForm";
 
@@ -25,12 +26,12 @@ export default function BoardCard({ board }: { board: Board }) {
 
         <form action={deleteBoard} className="inline">
           <input type="hidden" name="boardId" value={board.id} />
-          <button
-            type="submit"
+          <ConfirmSubmitButton
+            message="Excluir este quadro, colunas e cards?"
             className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-900"
           >
             Excluir
-          </button>
+          </ConfirmSubmitButton>
         </form>
       </div>
 

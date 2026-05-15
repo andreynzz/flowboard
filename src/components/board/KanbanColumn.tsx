@@ -6,6 +6,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { deleteColumn, updateColumn } from "@/actions/column.actions";
+import ConfirmSubmitButton from "@/components/ui/ConfirmSubmitButton";
 import type { ColumnWithCards } from "@/types";
 import CreateCardForm from "./CreateCardForm";
 import KanbanCard from "./KanbanCard";
@@ -63,12 +64,12 @@ export default function KanbanColumn({ column }: { column: ColumnWithCards }) {
 
             <form action={deleteColumn} className="mt-3 border-t border-zinc-200 pt-3 dark:border-zinc-800">
               <input type="hidden" name="columnId" value={column.id} />
-              <button
-                type="submit"
+              <ConfirmSubmitButton
+                message="Excluir esta coluna e todos os cards dela?"
                 className="w-full rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-900"
               >
                 Excluir coluna
-              </button>
+              </ConfirmSubmitButton>
             </form>
           </div>
         </details>
