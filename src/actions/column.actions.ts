@@ -1,3 +1,5 @@
+"use server";
+
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getServerSession } from "next-auth";
@@ -8,8 +10,6 @@ import { boards, columns } from "@/db/schema";
 import { createColumnSchema, updateColumnSchema } from "@/lib/validations";
 
 export async function createColumn(formData: FormData) {
-  "use server";
-
   const boardId = formData.get("boardId");
   const title = formData.get("title");
 
@@ -49,8 +49,6 @@ export async function createColumn(formData: FormData) {
 }
 
 export async function updateColumn(formData: FormData) {
-  "use server";
-
   const columnId = formData.get("columnId");
   const title = formData.get("title");
 
@@ -92,8 +90,6 @@ export async function updateColumn(formData: FormData) {
 }
 
 export async function deleteColumn(formData: FormData) {
-  "use server";
-
   const columnId = formData.get("columnId");
   if (typeof columnId !== "string") {
     throw new Error("Column ID inválido");

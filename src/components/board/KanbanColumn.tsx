@@ -1,11 +1,32 @@
+"use client";
+
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { deleteColumn, updateColumn } from "@/actions/column.actions";
 import type { ColumnWithCards } from "@/types";
 import CreateCardForm from "./CreateCardForm";
 import KanbanCard from "./KanbanCard";
 
 export default function KanbanColumn({ column }: { column: ColumnWithCards }) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: column.id,
+    data: {
+      type: "column",
+      columnId: column.id,
+    },
+  });
+
   return (
-    <section className="flex min-h-[28rem] w-[min(22rem,calc(100vw-3rem))] shrink-0 flex-col rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <section
+      className={`flex min-h-[28rem] w-[min(22rem,calc(100vw-3rem))] shrink-0 flex-col rounded-2xl border p-4 transition ${
+        isOver
+          ? "border-zinc-400 bg-white dark:border-zinc-600 dark:bg-zinc-950"
+          : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
+      }`}
+    >
       <header className="mb-4 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">
@@ -53,15 +74,20 @@ export default function KanbanColumn({ column }: { column: ColumnWithCards }) {
         </details>
       </header>
 
-      <div className="flex flex-1 flex-col gap-3">
-        {column.cards.length > 0 ? (
-          column.cards.map((card) => <KanbanCard key={card.id} card={card} />)
-        ) : (
-          <div className="grid min-h-32 place-items-center rounded-2xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm leading-6 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-            Nenhum card nesta coluna.
-          </div>
-        )}
-      </div>
+      <SortableContext
+        items={column.cards.map((card) => card.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div ref={setNodeRef} className="flex flex-1 flex-col gap-3">
+          {column.cards.length > 0 ? (
+            column.cards.map((card) => <KanbanCard key={card.id} card={card} />)
+          ) : (
+            <div className="grid min-h-32 place-items-center rounded-2xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm leading-6 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+              Nenhum card nesta coluna.
+            </div>
+          )}
+        </div>
+      </SortableContext>
 
       <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
         <CreateCardForm columnId={column.id} />

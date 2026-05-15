@@ -39,7 +39,14 @@ export const updateCardSchema = z.object({
 
 export const moveCardSchema = z.object({
   cardId: z.string().min(1),
-  sourceColumnId: z.string().min(1),
   targetColumnId: z.string().min(1),
-  newPosition: z.number().int().min(0),
+  cards: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        columnId: z.string().min(1),
+        position: z.number().int().min(0),
+      })
+    )
+    .min(1),
 });

@@ -1,3 +1,5 @@
+"use server";
+
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getServerSession } from "next-auth";
@@ -5,7 +7,11 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/db/index";
 import { boards, cards, columns } from "@/db/schema";
-import { createCardSchema, updateCardSchema } from "@/lib/validations";
+import {
+  createCardSchema,
+  moveCardSchema,
+  updateCardSchema,
+} from "@/lib/validations";
 
 function parseOptionalDate(value?: string) {
   if (!value) {
@@ -16,8 +22,6 @@ function parseOptionalDate(value?: string) {
 }
 
 export async function createCard(formData: FormData) {
-  "use server";
-
   const columnId = formData.get("columnId");
   const title = formData.get("title");
   const description = formData.get("description");
@@ -72,8 +76,6 @@ export async function createCard(formData: FormData) {
 }
 
 export async function updateCard(formData: FormData) {
-  "use server";
-
   const cardId = formData.get("cardId");
   const title = formData.get("title");
   const description = formData.get("description");
@@ -123,8 +125,6 @@ export async function updateCard(formData: FormData) {
 }
 
 export async function deleteCard(formData: FormData) {
-  "use server";
-
   const cardId = formData.get("cardId");
   if (typeof cardId !== "string") {
     throw new Error("Card ID inválido");
@@ -153,4 +153,77 @@ export async function deleteCard(formData: FormData) {
   await db.delete(cards).where(eq(cards.id, cardId));
 
   revalidatePath(`/app/boards/${card.boardId}`);
+}
+
+export async function moveCard(input: unknown) {
+  const parsed = moveCardSchema.parse(input);
+
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new Error("Usuário não autenticado");
+  }
+
+  const [targetColumn] = await db
+    .select({
+      id: columns.id,
+      boardId: columns.boardId,
+    })
+    .from(columns)
+    .innerJoin(boards, eq(columns.boardId, boards.id))
+    .where(
+      and(
+        eq(columns.id, parsed.targetColumnId),
+        eq(boards.ownerId, session.user.id)
+      )
+    )
+    .limit(1);
+
+  if (!targetColumn) {
+    throw new Error("Coluna de destino não encontrada");
+  }
+
+  const allowedColumns = await db
+    .select({ id: columns.id })
+    .from(columns)
+    .where(eq(columns.boardId, targetColumn.boardId));
+
+  const allowedColumnIds = new Set(allowedColumns.map((column) => column.id));
+  const payloadUsesOnlyBoardColumns = parsed.cards.every((card) =>
+    allowedColumnIds.has(card.columnId)
+  );
+
+  if (!payloadUsesOnlyBoardColumns) {
+    throw new Error("Payload de ordenação inválido");
+  }
+
+  const cardIds = parsed.cards.map((card) => card.id);
+  const boardCards = await db
+    .select({ id: cards.id })
+    .from(cards)
+    .innerJoin(columns, eq(cards.columnId, columns.id))
+    .where(eq(columns.boardId, targetColumn.boardId));
+
+  const boardCardIds = new Set(boardCards.map((card) => card.id));
+  const payloadUsesOnlyBoardCards = cardIds.every((cardId) =>
+    boardCardIds.has(cardId)
+  );
+
+  if (!payloadUsesOnlyBoardCards || !cardIds.includes(parsed.cardId)) {
+    throw new Error("Cards de ordenação inválidos");
+  }
+
+  await Promise.all(
+    parsed.cards.map((card) =>
+      db
+        .update(cards)
+        .set({
+          columnId: card.columnId,
+          position: card.position,
+          updatedAt: new Date(),
+        })
+        .where(eq(cards.id, card.id))
+    )
+  );
+
+  revalidatePath(`/app/boards/${targetColumn.boardId}`);
 }

@@ -1,3 +1,7 @@
+"use client";
+
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { deleteCard, updateCard } from "@/actions/card.actions";
 import type { Card } from "@/types";
 
@@ -18,17 +22,53 @@ const priorityClassName: Record<Card["priority"], string> = {
 };
 
 export default function KanbanCard({ card }: { card: Card }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: card.id,
+    data: {
+      type: "card",
+      cardId: card.id,
+      columnId: card.columnId,
+    },
+  });
+
   return (
-    <article className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <article
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={`rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 ${
+        isDragging ? "opacity-60 ring-2 ring-zinc-400" : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
           {card.title}
         </h3>
-        <span
-          className={`shrink-0 rounded-full border px-2 py-1 text-[11px] font-semibold ${priorityClassName[card.priority]}`}
-        >
-          {priorityLabel[card.priority]}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span
+            className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${priorityClassName[card.priority]}`}
+          >
+            {priorityLabel[card.priority]}
+          </span>
+          <button
+            type="button"
+            aria-label={`Arrastar card ${card.title}`}
+            className="grid h-7 w-7 cursor-grab place-items-center rounded-full border border-zinc-300 text-xs font-bold text-zinc-500 transition hover:bg-zinc-50 active:cursor-grabbing dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-900"
+            {...attributes}
+            {...listeners}
+          >
+            ::
+          </button>
+        </div>
       </div>
 
       {card.description ? (
