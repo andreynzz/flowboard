@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { deleteBoard } from "@/actions/board.actions";
 import type { Board } from "@/types";
+import EditBoardForm from "./EditBoardForm";
 
 export default function BoardCard({ board }: { board: Board }) {
   return (
@@ -32,6 +33,8 @@ export default function BoardCard({ board }: { board: Board }) {
           </button>
         </form>
       </div>
+
+      <EditBoardForm board={board} />
     </article>
   );
 }

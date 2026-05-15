@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/db/index";
 import { boards, columns } from "@/db/schema";
-import { createBoardSchema } from "@/lib/validations";
+import { createBoardSchema, updateBoardSchema } from "@/lib/validations";
 
 export async function createBoard(formData: FormData) {
   "use server";
@@ -78,4 +78,35 @@ export async function deleteBoard(formData: FormData) {
     .where(and(eq(boards.id, boardId), eq(boards.ownerId, session.user.id)));
 
   revalidatePath("/app");
+}
+
+export async function updateBoard(formData: FormData) {
+  "use server";
+
+  const boardId = formData.get("boardId");
+  const title = formData.get("title");
+  const description = formData.get("description");
+
+  const parsed = updateBoardSchema.parse({
+    boardId,
+    title,
+    description: typeof description === "string" ? description : undefined,
+  });
+
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new Error("Usuário não autenticado");
+  }
+
+  await db
+    .update(boards)
+    .set({
+      title: parsed.title,
+      description: parsed.description || null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(boards.id, parsed.boardId), eq(boards.ownerId, session.user.id)));
+
+  revalidatePath("/app");
+  revalidatePath(`/app/boards/${parsed.boardId}`);
 }

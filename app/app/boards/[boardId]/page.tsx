@@ -5,6 +5,8 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/db/index";
 import { boards, cards, columns } from "@/db/schema";
 import BoardView from "@/components/board/BoardView";
+import SignOutButton from "@/components/auth/SignOutButton";
+import EditBoardForm from "@/components/dashboard/EditBoardForm";
 import type { BoardWithColumns } from "@/types";
 
 interface BoardPageProps {
@@ -63,12 +65,16 @@ export default async function BoardPage({ params }: BoardPageProps) {
   return (
     <div className="min-h-screen bg-zinc-50 px-6 py-8 dark:bg-zinc-950">
       <main className="mx-auto w-full max-w-7xl">
-        <div className="flex flex-col gap-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
-            Quadro
-          </p>
-          <h1 className="text-3xl font-semibold text-zinc-950 dark:text-zinc-50">{board.title}</h1>
-          <p className="max-w-2xl text-sm leading-7 text-zinc-600 dark:text-zinc-400">{board.description ?? "Sem descrição disponível."}</p>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+              Quadro
+            </p>
+            <h1 className="mt-2 text-3xl font-semibold text-zinc-950 dark:text-zinc-50">{board.title}</h1>
+            <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">{board.description ?? "Sem descrição disponível."}</p>
+            <EditBoardForm board={board} />
+          </div>
+          <SignOutButton />
         </div>
 
         <BoardView board={boardWithColumns} />
