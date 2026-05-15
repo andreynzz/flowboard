@@ -8,12 +8,14 @@ import BoardView from "@/components/board/BoardView";
 import type { BoardWithColumns } from "@/types";
 
 interface BoardPageProps {
-  params: {
+  params: Promise<{
     boardId: string;
-  };
+  }>;
 }
 
 export default async function BoardPage({ params }: BoardPageProps) {
+  const { boardId } = await params;
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     redirect("/login");
@@ -22,7 +24,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
   const board = await db
     .select()
     .from(boards)
-    .where(and(eq(boards.id, params.boardId), eq(boards.ownerId, session.user.id)))
+    .where(and(eq(boards.id, boardId), eq(boards.ownerId, session.user.id)))
     .limit(1)
     .then((results) => results[0]);
 
