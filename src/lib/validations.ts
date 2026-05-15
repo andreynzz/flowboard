@@ -24,6 +24,9 @@ export const updateColumnSchema = z.object({
 export const createCardSchema = z.object({
   columnId: z.string().min(1),
   title: z.string().min(1, "O título é obrigatório").max(120),
+  description: z.string().max(2000).optional(),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+  dueDate: z.string().optional(),
 });
 
 export const updateCardSchema = z.object({

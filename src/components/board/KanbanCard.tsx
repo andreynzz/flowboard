@@ -1,3 +1,4 @@
+import { deleteCard, updateCard } from "@/actions/card.actions";
 import type { Card } from "@/types";
 
 const priorityLabel: Record<Card["priority"], string> = {
@@ -41,6 +42,77 @@ export default function KanbanCard({ card }: { card: Card }) {
           Prazo: {new Intl.DateTimeFormat("pt-BR").format(card.dueDate)}
         </p>
       ) : null}
+
+      <details className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+        <summary className="cursor-pointer text-xs font-semibold text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50">
+          Editar card
+        </summary>
+
+        <form action={updateCard} className="mt-4 grid gap-3">
+          <input type="hidden" name="cardId" value={card.id} />
+          <label className="grid gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+            Título
+            <input
+              name="title"
+              required
+              maxLength={120}
+              defaultValue={card.title}
+              className="rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
+            />
+          </label>
+          <label className="grid gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+            Descrição
+            <textarea
+              name="description"
+              maxLength={2000}
+              defaultValue={card.description ?? ""}
+              className="min-h-20 resize-none rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
+            />
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+              Prioridade
+              <select
+                name="priority"
+                defaultValue={card.priority}
+                className="rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
+              >
+                <option value="LOW">Baixa</option>
+                <option value="MEDIUM">Média</option>
+                <option value="HIGH">Alta</option>
+                <option value="URGENT">Urgente</option>
+              </select>
+            </label>
+            <label className="grid gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+              Prazo
+              <input
+                type="date"
+                name="dueDate"
+                defaultValue={card.dueDate?.toISOString().slice(0, 10)}
+                className="rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
+              />
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+            >
+              Salvar
+            </button>
+          </div>
+        </form>
+
+        <form action={deleteCard} className="mt-3">
+          <input type="hidden" name="cardId" value={card.id} />
+          <button
+            type="submit"
+            className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-900"
+          >
+            Excluir
+          </button>
+        </form>
+      </details>
     </article>
   );
 }
