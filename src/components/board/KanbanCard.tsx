@@ -46,8 +46,12 @@ export default function KanbanCard({ card }: { card: Card }) {
         transition,
       }}
       className={`rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 ${
-        isDragging ? "opacity-60 ring-2 ring-zinc-400" : ""
+        isDragging
+          ? "cursor-grabbing opacity-60 ring-2 ring-zinc-400"
+          : "cursor-grab"
       }`}
+      {...attributes}
+      {...listeners}
     >
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
@@ -59,15 +63,6 @@ export default function KanbanCard({ card }: { card: Card }) {
           >
             {priorityLabel[card.priority]}
           </span>
-          <button
-            type="button"
-            aria-label={`Arrastar card ${card.title}`}
-            className="grid h-7 w-7 cursor-grab place-items-center rounded-full border border-zinc-300 text-xs font-bold text-zinc-500 transition hover:bg-zinc-50 active:cursor-grabbing dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-900"
-            {...attributes}
-            {...listeners}
-          >
-            ::
-          </button>
         </div>
       </div>
 
