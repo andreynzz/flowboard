@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import { getServerSession } from "next-auth";
 import { and, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/db/index";
 import { boards, columns } from "@/db/schema";
@@ -28,35 +29,35 @@ export async function createBoard(formData: FormData) {
 
   const boardId = nanoid();
 
-  await db.transaction(async (tx) => {
-    await tx.insert(boards).values({
-      id: boardId,
-      title: parsed.title,
-      description: parsed.description ?? null,
-      ownerId: session.user.id,
-    });
-
-    await tx.insert(columns).values([
-      {
-        id: nanoid(),
-        title: "A Fazer",
-        position: 0,
-        boardId,
-      },
-      {
-        id: nanoid(),
-        title: "Em Progresso",
-        position: 1,
-        boardId,
-      },
-      {
-        id: nanoid(),
-        title: "Concluído",
-        position: 2,
-        boardId,
-      },
-    ]);
+  await db.insert(boards).values({
+    id: boardId,
+    title: parsed.title,
+    description: parsed.description ?? null,
+    ownerId: session.user.id,
   });
+
+  await db.insert(columns).values([
+    {
+      id: nanoid(),
+      title: "A Fazer",
+      position: 0,
+      boardId,
+    },
+    {
+      id: nanoid(),
+      title: "Em Progresso",
+      position: 1,
+      boardId,
+    },
+    {
+      id: nanoid(),
+      title: "Concluído",
+      position: 2,
+      boardId,
+    },
+  ]);
+
+  revalidatePath("/app");
 }
 
 export async function deleteBoard(formData: FormData) {
@@ -75,4 +76,6 @@ export async function deleteBoard(formData: FormData) {
   await db
     .delete(boards)
     .where(and(eq(boards.id, boardId), eq(boards.ownerId, session.user.id)));
+
+  revalidatePath("/app");
 }
