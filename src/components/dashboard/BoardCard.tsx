@@ -7,14 +7,7 @@ import EditBoardForm from "./EditBoardForm";
 export default function BoardCard({ board }: { board: Board }) {
   return (
     <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">{board.title}</h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            {board.description ?? "Sem descrição"}
-          </p>
-        </div>
-      </div>
+      <EditBoardForm board={board} />
 
       <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
         <Link
@@ -34,8 +27,6 @@ export default function BoardCard({ board }: { board: Board }) {
           </ConfirmSubmitButton>
         </form>
       </div>
-
-      <EditBoardForm board={board} />
     </article>
   );
 }

@@ -1,3 +1,5 @@
+"use server";
+
 import { nanoid } from "nanoid";
 import { getServerSession } from "next-auth";
 import { and, eq } from "drizzle-orm";
@@ -8,8 +10,6 @@ import { boards, columns } from "@/db/schema";
 import { createBoardSchema, updateBoardSchema } from "@/lib/validations";
 
 export async function createBoard(formData: FormData) {
-  "use server";
-
   const title = formData.get("title");
   const description = formData.get("description");
 
@@ -61,8 +61,6 @@ export async function createBoard(formData: FormData) {
 }
 
 export async function deleteBoard(formData: FormData) {
-  "use server";
-
   const boardId = formData.get("boardId");
   if (typeof boardId !== "string") {
     throw new Error("Board ID inválido");
@@ -81,8 +79,6 @@ export async function deleteBoard(formData: FormData) {
 }
 
 export async function updateBoard(formData: FormData) {
-  "use server";
-
   const boardId = formData.get("boardId");
   const title = formData.get("title");
   const description = formData.get("description");

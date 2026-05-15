@@ -70,9 +70,9 @@ export default async function BoardPage({ params }: BoardPageProps) {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
               Quadro
             </p>
-            <h1 className="mt-2 text-3xl font-semibold text-zinc-950 dark:text-zinc-50">{board.title}</h1>
-            <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-400">{board.description ?? "Sem descrição disponível."}</p>
-            <EditBoardForm board={board} />
+            <div className="mt-2">
+              <EditBoardForm board={board} variant="page" />
+            </div>
           </div>
           <SignOutButton />
         </div>

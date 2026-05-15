@@ -2,6 +2,8 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Check, Pencil, X } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
 import { deleteCard, updateCard } from "@/actions/card.actions";
 import ConfirmSubmitButton from "@/components/ui/ConfirmSubmitButton";
 import type { Card } from "@/types";
@@ -23,6 +25,14 @@ const priorityClassName: Record<Card["priority"], string> = {
 };
 
 export default function KanbanCard({ card }: { card: Card }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [title, setTitle] = useState(card.title);
+  const [description, setDescription] = useState(card.description ?? "");
+  const [priority, setPriority] = useState(card.priority);
+  const [dueDate, setDueDate] = useState(
+    card.dueDate?.toISOString().slice(0, 10) ?? ""
+  );
   const {
     attributes,
     listeners,
@@ -39,6 +49,28 @@ export default function KanbanCard({ card }: { card: Card }) {
     },
   });
 
+  useEffect(() => {
+    setTitle(card.title);
+    setDescription(card.description ?? "");
+    setPriority(card.priority);
+    setDueDate(card.dueDate?.toISOString().slice(0, 10) ?? "");
+  }, [card.description, card.dueDate, card.priority, card.title]);
+
+  function reset() {
+    setTitle(card.title);
+    setDescription(card.description ?? "");
+    setPriority(card.priority);
+    setDueDate(card.dueDate?.toISOString().slice(0, 10) ?? "");
+    setIsEditing(false);
+  }
+
+  function handleSubmit(formData: FormData) {
+    startTransition(async () => {
+      await updateCard(formData);
+      setIsEditing(false);
+    });
+  }
+
   return (
     <article
       ref={setNodeRef}
@@ -54,63 +86,37 @@ export default function KanbanCard({ card }: { card: Card }) {
       {...attributes}
       {...listeners}
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
-          {card.title}
-        </h3>
-        <div className="flex shrink-0 items-center gap-2">
-          <span
-            className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${priorityClassName[card.priority]}`}
-          >
-            {priorityLabel[card.priority]}
-          </span>
-        </div>
-      </div>
-
-      {card.description ? (
-        <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-          {card.description}
-        </p>
-      ) : null}
-
-      {card.dueDate ? (
-        <p className="mt-4 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-          Prazo: {new Intl.DateTimeFormat("pt-BR").format(card.dueDate)}
-        </p>
-      ) : null}
-
-      <details className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-        <summary className="cursor-pointer text-xs font-semibold text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50">
-          Editar card
-        </summary>
-
-        <form action={updateCard} className="mt-4 grid gap-3">
+      {isEditing ? (
+        <form
+          action={handleSubmit}
+          className="grid gap-3"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
           <input type="hidden" name="cardId" value={card.id} />
-          <label className="grid gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
-            Título
-            <input
-              name="title"
-              required
-              maxLength={120}
-              defaultValue={card.title}
-              className="rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
-            />
-          </label>
-          <label className="grid gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
-            Descrição
-            <textarea
-              name="description"
-              maxLength={2000}
-              defaultValue={card.description ?? ""}
-              className="min-h-20 resize-none rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
-            />
-          </label>
+          <input
+            name="title"
+            required
+            maxLength={120}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className="rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm font-semibold text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
+          />
+          <textarea
+            name="description"
+            maxLength={2000}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            className="min-h-20 resize-none rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
+          />
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
               Prioridade
               <select
                 name="priority"
-                defaultValue={card.priority}
+                value={priority}
+                onChange={(event) =>
+                  setPriority(event.target.value as Card["priority"])
+                }
                 className="rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
               >
                 <option value="LOW">Baixa</option>
@@ -124,7 +130,8 @@ export default function KanbanCard({ card }: { card: Card }) {
               <input
                 type="date"
                 name="dueDate"
-                defaultValue={card.dueDate?.toISOString().slice(0, 10)}
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
                 className="rounded-2xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-900 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-700"
               />
             </label>
@@ -132,14 +139,70 @@ export default function KanbanCard({ card }: { card: Card }) {
           <div className="flex flex-wrap gap-2">
             <button
               type="submit"
-              className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              disabled={isPending}
+              className="inline-flex items-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
             >
+              <Check className="h-3.5 w-3.5" />
               Salvar
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              <X className="h-3.5 w-3.5" />
+              Cancelar
             </button>
           </div>
         </form>
+      ) : (
+        <>
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50">
+              {title}
+            </h3>
+            <div
+              className="flex shrink-0 items-center gap-2"
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <span
+                className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${priorityClassName[priority]}`}
+              >
+                {priorityLabel[priority]}
+              </span>
+              <button
+                type="button"
+                aria-label="Editar card"
+                onClick={() => setIsEditing(true)}
+                className="grid h-7 w-7 place-items-center rounded-full border border-zinc-300 text-zinc-500 transition hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
 
-        <form action={deleteCard} className="mt-3">
+          {description ? (
+            <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+              {description}
+            </p>
+          ) : null}
+
+          {dueDate ? (
+            <p className="mt-4 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Prazo:{" "}
+              {new Intl.DateTimeFormat("pt-BR").format(
+                new Date(`${dueDate}T00:00:00`)
+              )}
+            </p>
+          ) : null}
+        </>
+      )}
+
+      <form
+        action={deleteCard}
+        className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800"
+        onPointerDown={(event) => event.stopPropagation()}
+      >
           <input type="hidden" name="cardId" value={card.id} />
           <ConfirmSubmitButton
             message="Excluir este card?"
@@ -147,8 +210,7 @@ export default function KanbanCard({ card }: { card: Card }) {
           >
             Excluir
           </ConfirmSubmitButton>
-        </form>
-      </details>
+      </form>
     </article>
   );
 }
